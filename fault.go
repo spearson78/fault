@@ -7,40 +7,47 @@ package fault
 
 import (
 	"fmt"
-	"runtime"
 	"strings"
+
+	"github.com/Southclaws/fault/floc"
 )
 
 // Wrapper describes a kind of middleware that packages can satisfy in order to
 // decorate errors with additional, domain-specific context.
 type Wrapper func(err error) error
 
+var AutoGenerateLocations = true
+
 // Wrap wraps an error with all of the wrappers provided.
 func Wrap(err error, w ...Wrapper) error {
 	if err == nil {
-		panic("nil error passed to Wrap")
+		return nil
 	}
+
+	generatedLocation := false
 
 	for _, fn := range w {
-		err = fn(err)
+		newErr := fn(err)
+		if newErr != nil {
+			err = newErr
+		}
+
+		if _, isLocation := newErr.(*floc.WithLocation); isLocation {
+			generatedLocation = true
+		}
 	}
 
-	c := &container{
-		cause:    err,
-		location: getLocation(),
+	if AutoGenerateLocations && !generatedLocation {
+		err = floc.WrapDepth(err, 1)
 	}
 
-	if _, ok := err.(*container); !ok {
-		c.end = true
+	return &container{
+		cause: err,
 	}
-
-	return c
 }
 
 type container struct {
-	cause    error
-	location string
-	end      bool // is this the last one in the chain before an external error?
+	cause error
 }
 
 // Error behaves like most error wrapping libraries, it gives you all the error
@@ -75,9 +82,4 @@ func (f *container) Format(s fmt.State, verb rune) {
 			fmt.Fprintf(s, "\t%s\n", v.Location)
 		}
 	}
-}
-
-func getLocation() string {
-	_, file, line, _ := runtime.Caller(2)
-	return fmt.Sprintf("%s:%d", file, line)
 }
