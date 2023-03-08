@@ -3,7 +3,7 @@ package fault
 import (
 	"errors"
 
-	"github.com/Southclaws/fault/floc"
+	"github.com/spearson78/fault/floc"
 )
 
 // Chain represents an unwound error chain. It contains a reference to the root

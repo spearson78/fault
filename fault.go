@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Southclaws/fault/floc"
+	"github.com/spearson78/fault/floc"
 )
 
 // Wrapper describes a kind of middleware that packages can satisfy in order to

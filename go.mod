@@ -1,3 +1,3 @@
-module github.com/Southclaws/fault
+module github.com/spearson78/fault
 
 go 1.18
